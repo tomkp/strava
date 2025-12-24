@@ -945,6 +945,36 @@ describe("StravaClient", () => {
         "Invalid webhook event payload"
       );
     });
+
+    it("should throw on invalid object_type", () => {
+      const invalidPayload = {
+        object_type: "invalid_type",
+        object_id: 12345678,
+        aspect_type: "create",
+        owner_id: 123456,
+        subscription_id: 789,
+        event_time: 1704067200,
+      };
+
+      expect(() => client.parseWebhookEvent(invalidPayload)).toThrow(
+        "Invalid webhook event payload"
+      );
+    });
+
+    it("should throw on invalid aspect_type", () => {
+      const invalidPayload = {
+        object_type: "activity",
+        object_id: 12345678,
+        aspect_type: "invalid_aspect",
+        owner_id: 123456,
+        subscription_id: 789,
+        event_time: 1704067200,
+      };
+
+      expect(() => client.parseWebhookEvent(invalidPayload)).toThrow(
+        "Invalid webhook event payload"
+      );
+    });
   });
 
   describe("AbortController Support", () => {

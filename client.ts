@@ -1229,7 +1229,7 @@ export class StravaClient {
   public parseWebhookEvent(payload: unknown): StravaWebhookEvent {
     const event = payload as StravaWebhookEvent;
 
-    // Basic validation
+    // Basic type validation
     if (
       typeof event.object_type !== "string" ||
       typeof event.object_id !== "number" ||
@@ -1238,6 +1238,18 @@ export class StravaClient {
       typeof event.subscription_id !== "number" ||
       typeof event.event_time !== "number"
     ) {
+      throw new StravaValidationError("Invalid webhook event payload");
+    }
+
+    // Enum validation
+    const validObjectTypes = ["activity", "athlete"];
+    const validAspectTypes = ["create", "update", "delete"];
+
+    if (!validObjectTypes.includes(event.object_type)) {
+      throw new StravaValidationError("Invalid webhook event payload");
+    }
+
+    if (!validAspectTypes.includes(event.aspect_type)) {
       throw new StravaValidationError("Invalid webhook event payload");
     }
 
