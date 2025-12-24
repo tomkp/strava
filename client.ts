@@ -1285,6 +1285,9 @@ export class StravaClient {
       client_secret: this.config.clientSecret,
     });
 
+    // Note: Strava's API requires using POST with X-HTTP-Method-Override header
+    // for DELETE operations on webhook subscriptions. This is a Strava API limitation,
+    // not a design choice. See: https://developers.strava.com/docs/webhooks/
     await this.fetchWithTimeout(`${STRAVA_API_BASE_URL}/push_subscriptions/${subscriptionId}`, {
       method: "POST",
       headers: {
