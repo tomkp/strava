@@ -672,4 +672,120 @@ describe("StravaClient", () => {
       expect(activities).toHaveLength(2);
     });
   });
+
+  describe("Generic Pagination Helper", () => {
+    beforeEach(() => {
+      client.setTokens({
+        accessToken: "valid-token",
+        refreshToken: "refresh-token",
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      });
+    });
+
+    it("should paginate club members with getAllClubMembers", async () => {
+      // First page returns 2 members, second page returns 1 (less than perPage)
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { firstname: "Alice", lastname: "A" },
+              { firstname: "Bob", lastname: "B" },
+            ]),
+          headers: new Headers(),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve([{ firstname: "Charlie", lastname: "C" }]),
+          headers: new Headers(),
+        });
+
+      const members = await client.getAllClubMembers(12345, { per_page: 2 });
+      expect(members).toHaveLength(3);
+      expect(members[0].firstname).toBe("Alice");
+      expect(members[2].firstname).toBe("Charlie");
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should paginate starred segments with getAllStarredSegments", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { id: 1, name: "Segment 1" },
+              { id: 2, name: "Segment 2" },
+            ]),
+          headers: new Headers(),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve([]),
+          headers: new Headers(),
+        });
+
+      const segments = await client.getAllStarredSegments({ per_page: 2 });
+      expect(segments).toHaveLength(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should iterate over club members with iterateClubMembers", async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { firstname: "Alice", lastname: "A" },
+              { firstname: "Bob", lastname: "B" },
+            ]),
+          headers: new Headers(),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve([{ firstname: "Charlie", lastname: "C" }]),
+          headers: new Headers(),
+        });
+
+      const members: { firstname: string }[] = [];
+      for await (const member of client.iterateClubMembers(12345, { per_page: 2 })) {
+        members.push(member as { firstname: string });
+      }
+
+      expect(members).toHaveLength(3);
+    });
+
+    it("should allow early termination of club member iteration", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve([
+            { firstname: "Alice" },
+            { firstname: "Bob" },
+            { firstname: "Charlie" },
+          ]),
+        headers: new Headers(),
+      });
+
+      const members: { firstname: string }[] = [];
+      for await (const member of client.iterateClubMembers(12345)) {
+        members.push(member as { firstname: string });
+        if (members.length >= 2) break;
+      }
+
+      expect(members).toHaveLength(2);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle empty first page gracefully", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([]),
+        headers: new Headers(),
+      });
+
+      const members = await client.getAllClubMembers(12345);
+      expect(members).toHaveLength(0);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });

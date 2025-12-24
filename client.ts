@@ -311,6 +311,49 @@ export class StravaClient {
     }
   }
 
+  /**
+   * Generic async iterator for paginated endpoints.
+   * Yields items one at a time across all pages.
+   */
+  private async *paginate<T>(
+    fetchPage: (page: number, perPage: number) => Promise<T[]>,
+    perPage: number = 30
+  ): AsyncGenerator<T, void, undefined> {
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const items = await fetchPage(page, perPage);
+
+      if (items.length === 0) {
+        hasMore = false;
+      } else {
+        for (const item of items) {
+          yield item;
+        }
+        page++;
+
+        if (items.length < perPage) {
+          hasMore = false;
+        }
+      }
+    }
+  }
+
+  /**
+   * Generic helper to collect all items from a paginated endpoint.
+   */
+  private async paginateAll<T>(
+    fetchPage: (page: number, perPage: number) => Promise<T[]>,
+    perPage: number = 30
+  ): Promise<T[]> {
+    const allItems: T[] = [];
+    for await (const item of this.paginate(fetchPage, perPage)) {
+      allItems.push(item);
+    }
+    return allItems;
+  }
+
   // ============================================================================
   // Token Management
   // ============================================================================
@@ -561,29 +604,10 @@ export class StravaClient {
     options: Omit<GetActivitiesOptions, "page"> = {}
   ): AsyncGenerator<StravaActivity, void, undefined> {
     const perPage = options.per_page || 200;
-    let page = 1;
-    let hasMore = true;
-
-    while (hasMore) {
-      const activities = await this.getActivities({
-        ...options,
-        page,
-        per_page: perPage,
-      });
-
-      if (activities.length === 0) {
-        hasMore = false;
-      } else {
-        for (const activity of activities) {
-          yield activity;
-        }
-        page++;
-
-        if (activities.length < perPage) {
-          hasMore = false;
-        }
-      }
-    }
+    yield* this.paginate(
+      (page, per_page) => this.getActivities({ ...options, page, per_page }),
+      perPage
+    );
   }
 
   /**
@@ -782,6 +806,35 @@ export class StravaClient {
     });
   }
 
+  /**
+   * Get all club members using auto-pagination.
+   */
+  public async getAllClubMembers(
+    clubId: number,
+    options: Omit<PaginationOptions, "page"> = {}
+  ): Promise<StravaClubMember[]> {
+    const perPage = options.per_page || 30;
+    return this.paginateAll(
+      (page, per_page) => this.getClubMembers(clubId, { page, per_page }),
+      perPage
+    );
+  }
+
+  /**
+   * Iterate over club members using async generator.
+   * Memory-efficient alternative to getAllClubMembers.
+   */
+  public async *iterateClubMembers(
+    clubId: number,
+    options: Omit<PaginationOptions, "page"> = {}
+  ): AsyncGenerator<StravaClubMember, void, undefined> {
+    const perPage = options.per_page || 30;
+    yield* this.paginate(
+      (page, per_page) => this.getClubMembers(clubId, { page, per_page }),
+      perPage
+    );
+  }
+
   // ============================================================================
   // Gear Endpoints
   // ============================================================================
@@ -876,6 +929,33 @@ export class StravaClient {
         per_page: options.per_page || 30,
       },
     });
+  }
+
+  /**
+   * Get all starred segments using auto-pagination.
+   */
+  public async getAllStarredSegments(
+    options: Omit<PaginationOptions, "page"> = {}
+  ): Promise<StravaSegment[]> {
+    const perPage = options.per_page || 30;
+    return this.paginateAll(
+      (page, per_page) => this.getStarredSegments({ page, per_page }),
+      perPage
+    );
+  }
+
+  /**
+   * Iterate over starred segments using async generator.
+   * Memory-efficient alternative to getAllStarredSegments.
+   */
+  public async *iterateStarredSegments(
+    options: Omit<PaginationOptions, "page"> = {}
+  ): AsyncGenerator<StravaSegment, void, undefined> {
+    const perPage = options.per_page || 30;
+    yield* this.paginate(
+      (page, per_page) => this.getStarredSegments({ page, per_page }),
+      perPage
+    );
   }
 
   /**
