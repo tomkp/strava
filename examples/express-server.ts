@@ -6,9 +6,6 @@
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { StravaClient, StravaTokens, StravaRateLimitError } from '../index';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

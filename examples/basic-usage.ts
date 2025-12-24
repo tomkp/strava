@@ -4,9 +4,6 @@
  */
 
 import { StravaClient } from '../index';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
 
 async function basicUsage() {
   // Initialize the client
