@@ -1,0 +1,27 @@
+# Source files (we publish dist/)
+*.ts
+!*.d.ts
+tsconfig.json
+
+# Examples
+examples/
+
+# Documentation (README is included via package.json files)
+QUICKSTART.md
+
+# Development
+.gitignore
+.git/
+.idea/
+.vscode/
+
+# Test
+coverage/
+*.test.ts
+*.spec.ts
+__tests__/
+
+# Misc
+.DS_Store
+*.log
+.env*
