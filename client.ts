@@ -36,7 +36,6 @@ import {
   StravaStreamType,
   StravaRateLimitInfo,
   StravaClientConfig,
-  RequestOptions,
   GetActivitiesOptions,
   GetActivityStreamsOptions,
   CreateActivityOptions,
@@ -235,9 +234,13 @@ export class StravaClient {
         };
         options.signal.addEventListener("abort", onUserAbort, { once: true });
         // Clean up listener when we're done
-        controller.signal.addEventListener("abort", () => {
-          options.signal?.removeEventListener("abort", onUserAbort);
-        }, { once: true });
+        controller.signal.addEventListener(
+          "abort",
+          () => {
+            options.signal?.removeEventListener("abort", onUserAbort);
+          },
+          { once: true }
+        );
       }
     }
 
@@ -986,10 +989,7 @@ export class StravaClient {
     options: Omit<PaginationOptions, "page"> = {}
   ): AsyncGenerator<StravaSegment, void, undefined> {
     const perPage = options.per_page || 30;
-    yield* this.paginate(
-      (page, per_page) => this.getStarredSegments({ page, per_page }),
-      perPage
-    );
+    yield* this.paginate((page, per_page) => this.getStarredSegments({ page, per_page }), perPage);
   }
 
   /**
@@ -1148,13 +1148,17 @@ export class StravaClient {
       verify_token: options.verifyToken,
     });
 
-    return this.requestRaw<StravaWebhookSubscription>("POST", `${STRAVA_API_BASE_URL}/push_subscriptions`, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: body.toString(),
-      skipRateLimit: true,
-    });
+    return this.requestRaw<StravaWebhookSubscription>(
+      "POST",
+      `${STRAVA_API_BASE_URL}/push_subscriptions`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
+        skipRateLimit: true,
+      }
+    );
   }
 
   /**
@@ -1187,19 +1191,16 @@ export class StravaClient {
       client_secret: this.config.clientSecret,
     });
 
-    await this.fetchWithTimeout(
-      `${STRAVA_API_BASE_URL}/push_subscriptions/${subscriptionId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "X-HTTP-Method-Override": "DELETE",
-        },
-        body: body.toString(),
-        parseResponse: async () => undefined,
-        skipRateLimit: true,
-      }
-    );
+    await this.fetchWithTimeout(`${STRAVA_API_BASE_URL}/push_subscriptions/${subscriptionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-HTTP-Method-Override": "DELETE",
+      },
+      body: body.toString(),
+      parseResponse: async () => undefined,
+      skipRateLimit: true,
+    });
   }
 
   /**

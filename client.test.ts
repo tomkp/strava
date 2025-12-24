@@ -758,11 +758,7 @@ describe("StravaClient", () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
-          Promise.resolve([
-            { firstname: "Alice" },
-            { firstname: "Bob" },
-            { firstname: "Charlie" },
-          ]),
+          Promise.resolve([{ firstname: "Alice" }, { firstname: "Bob" }, { firstname: "Charlie" }]),
         headers: new Headers(),
       });
 
@@ -930,7 +926,9 @@ describe("StravaClient", () => {
         // missing other fields
       };
 
-      expect(() => client.parseWebhookEvent(invalidPayload)).toThrow("Invalid webhook event payload");
+      expect(() => client.parseWebhookEvent(invalidPayload)).toThrow(
+        "Invalid webhook event payload"
+      );
     });
   });
 
@@ -950,21 +948,19 @@ describe("StravaClient", () => {
       controller.abort();
 
       // Mock fetch to check the signal is aborted
-      mockFetch.mockImplementationOnce(
-        (_url: string, options: { signal?: AbortSignal }) => {
-          // If signal is already aborted, reject immediately
-          if (options.signal?.aborted) {
-            const error = new Error("Aborted");
-            error.name = "AbortError";
-            return Promise.reject(error);
-          }
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve([]),
-            headers: new Headers(),
-          });
+      mockFetch.mockImplementationOnce((_url: string, options: { signal?: AbortSignal }) => {
+        // If signal is already aborted, reject immediately
+        if (options.signal?.aborted) {
+          const error = new Error("Aborted");
+          error.name = "AbortError";
+          return Promise.reject(error);
         }
-      );
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+          headers: new Headers(),
+        });
+      });
 
       // Should throw AbortError (not StravaNetworkError)
       await expect(client.getActivities({ signal: controller.signal })).rejects.toThrow();
@@ -974,20 +970,18 @@ describe("StravaClient", () => {
       const controller = new AbortController();
       controller.abort();
 
-      mockFetch.mockImplementationOnce(
-        (_url: string, options: { signal?: AbortSignal }) => {
-          if (options.signal?.aborted) {
-            const error = new Error("Aborted");
-            error.name = "AbortError";
-            return Promise.reject(error);
-          }
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve([]),
-            headers: new Headers(),
-          });
+      mockFetch.mockImplementationOnce((_url: string, options: { signal?: AbortSignal }) => {
+        if (options.signal?.aborted) {
+          const error = new Error("Aborted");
+          error.name = "AbortError";
+          return Promise.reject(error);
         }
-      );
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+          headers: new Headers(),
+        });
+      });
 
       try {
         await client.getActivities({ signal: controller.signal });
