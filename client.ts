@@ -16,15 +16,35 @@ import {
   StravaTokens,
   StravaAthlete,
   StravaAthleteStats,
+  StravaAthleteZones,
   StravaActivity,
   StravaActivityZones,
   StravaLap,
-  GetActivitiesOptions,
+  StravaComment,
+  StravaKudoser,
+  StravaClub,
+  StravaClubActivity,
+  StravaClubMember,
+  StravaClubAdmin,
+  StravaGear,
+  StravaRoute,
+  StravaSegment,
+  StravaSegmentEffort,
+  StravaExplorerResponse,
+  StravaUpload,
   StravaStreams,
-  GetActivityStreamsOptions,
+  StravaStreamType,
   StravaRateLimitInfo,
   StravaClientConfig,
-  StravaStreamType,
+  GetActivitiesOptions,
+  GetActivityStreamsOptions,
+  CreateActivityOptions,
+  UpdateActivityOptions,
+  UpdateAthleteOptions,
+  PaginationOptions,
+  ExploreSegmentsOptions,
+  GetSegmentEffortsOptions,
+  UploadActivityOptions,
 } from './types';
 import {
   parseStravaError,
@@ -62,7 +82,7 @@ export class StravaClient {
    * Make an authenticated request to the Strava API
    */
   private async request<T>(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PUT',
     path: string,
     options: {
       params?: Record<string, string | number | boolean | undefined>;
@@ -515,6 +535,373 @@ export class StravaClient {
    */
   public async getActivityLaps(activityId: number): Promise<StravaLap[]> {
     return this.request<StravaLap[]>('GET', `/activities/${activityId}/laps`);
+  }
+
+  /**
+   * Create a manual activity
+   */
+  public async createActivity(options: CreateActivityOptions): Promise<StravaActivity> {
+    return this.request<StravaActivity>('POST', '/activities', {
+      body: options as unknown as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Update an activity
+   */
+  public async updateActivity(activityId: number, options: UpdateActivityOptions): Promise<StravaActivity> {
+    return this.request<StravaActivity>('PUT', `/activities/${activityId}`, {
+      body: options as unknown as Record<string, unknown>,
+    });
+  }
+
+  /**
+   * Get activity comments
+   */
+  public async getActivityComments(
+    activityId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaComment[]> {
+    return this.request<StravaComment[]>('GET', `/activities/${activityId}/comments`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Get activity kudoers
+   */
+  public async getActivityKudoers(
+    activityId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaKudoser[]> {
+    return this.request<StravaKudoser[]>('GET', `/activities/${activityId}/kudos`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  // ============================================================================
+  // Athlete Endpoints (Extended)
+  // ============================================================================
+
+  /**
+   * Get athlete zones
+   */
+  public async getAthleteZones(): Promise<StravaAthleteZones> {
+    return this.request<StravaAthleteZones>('GET', '/athlete/zones');
+  }
+
+  /**
+   * Update authenticated athlete
+   */
+  public async updateAthlete(options: UpdateAthleteOptions): Promise<StravaAthlete> {
+    return this.request<StravaAthlete>('PUT', '/athlete', {
+      body: options as unknown as Record<string, unknown>,
+    });
+  }
+
+  // ============================================================================
+  // Club Endpoints
+  // ============================================================================
+
+  /**
+   * Get club by ID
+   */
+  public async getClub(clubId: number): Promise<StravaClub> {
+    return this.request<StravaClub>('GET', `/clubs/${clubId}`);
+  }
+
+  /**
+   * Get clubs the authenticated athlete is a member of
+   */
+  public async getAthleteClubs(options: PaginationOptions = {}): Promise<StravaClub[]> {
+    return this.request<StravaClub[]>('GET', '/athlete/clubs', {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Get club activities
+   */
+  public async getClubActivities(
+    clubId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaClubActivity[]> {
+    return this.request<StravaClubActivity[]>('GET', `/clubs/${clubId}/activities`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Get club members
+   */
+  public async getClubMembers(
+    clubId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaClubMember[]> {
+    return this.request<StravaClubMember[]>('GET', `/clubs/${clubId}/members`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Get club admins
+   */
+  public async getClubAdmins(
+    clubId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaClubAdmin[]> {
+    return this.request<StravaClubAdmin[]>('GET', `/clubs/${clubId}/admins`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  // ============================================================================
+  // Gear Endpoints
+  // ============================================================================
+
+  /**
+   * Get gear by ID
+   */
+  public async getGear(gearId: string): Promise<StravaGear> {
+    return this.request<StravaGear>('GET', `/gear/${gearId}`);
+  }
+
+  // ============================================================================
+  // Route Endpoints
+  // ============================================================================
+
+  /**
+   * Get route by ID
+   */
+  public async getRoute(routeId: number): Promise<StravaRoute> {
+    return this.request<StravaRoute>('GET', `/routes/${routeId}`);
+  }
+
+  /**
+   * Get athlete routes
+   */
+  public async getAthleteRoutes(
+    athleteId: number,
+    options: PaginationOptions = {}
+  ): Promise<StravaRoute[]> {
+    return this.request<StravaRoute[]>('GET', `/athletes/${athleteId}/routes`, {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Export route as GPX
+   */
+  public async exportRouteGPX(routeId: number): Promise<string> {
+    return this.request<string>('GET', `/routes/${routeId}/export_gpx`);
+  }
+
+  /**
+   * Export route as TCX
+   */
+  public async exportRouteTCX(routeId: number): Promise<string> {
+    return this.request<string>('GET', `/routes/${routeId}/export_tcx`);
+  }
+
+  /**
+   * Get route streams
+   */
+  public async getRouteStreams(routeId: number): Promise<StravaStreams> {
+    return this.request<StravaStreams>('GET', `/routes/${routeId}/streams`);
+  }
+
+  // ============================================================================
+  // Segment Endpoints
+  // ============================================================================
+
+  /**
+   * Get segment by ID
+   */
+  public async getSegment(segmentId: number): Promise<StravaSegment> {
+    return this.request<StravaSegment>('GET', `/segments/${segmentId}`);
+  }
+
+  /**
+   * Explore segments in a given area
+   */
+  public async exploreSegments(options: ExploreSegmentsOptions): Promise<StravaExplorerResponse> {
+    const bounds = options.bounds.join(',');
+    return this.request<StravaExplorerResponse>('GET', '/segments/explore', {
+      params: {
+        bounds,
+        activity_type: options.activity_type,
+        min_cat: options.min_cat,
+        max_cat: options.max_cat,
+      },
+    });
+  }
+
+  /**
+   * Get starred segments for the authenticated athlete
+   */
+  public async getStarredSegments(options: PaginationOptions = {}): Promise<StravaSegment[]> {
+    return this.request<StravaSegment[]>('GET', '/segments/starred', {
+      params: {
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Star or unstar a segment
+   */
+  public async starSegment(segmentId: number, starred: boolean): Promise<StravaSegment> {
+    return this.request<StravaSegment>('PUT', `/segments/${segmentId}/starred`, {
+      body: { starred },
+    });
+  }
+
+  /**
+   * Get segment streams
+   */
+  public async getSegmentStreams(
+    segmentId: number,
+    options: GetActivityStreamsOptions = {}
+  ): Promise<StravaStreams> {
+    const keys = options.keys || ['distance', 'altitude'];
+    return this.request<StravaStreams>('GET', `/segments/${segmentId}/streams`, {
+      params: {
+        keys: keys.join(','),
+        key_by_type: options.key_by_type ?? true,
+      },
+    });
+  }
+
+  // ============================================================================
+  // Segment Effort Endpoints
+  // ============================================================================
+
+  /**
+   * Get segment effort by ID
+   */
+  public async getSegmentEffort(effortId: number): Promise<StravaSegmentEffort> {
+    return this.request<StravaSegmentEffort>('GET', `/segment_efforts/${effortId}`);
+  }
+
+  /**
+   * Get segment efforts for a segment
+   */
+  public async getSegmentEfforts(
+    segmentId: number,
+    options: GetSegmentEffortsOptions = {}
+  ): Promise<StravaSegmentEffort[]> {
+    return this.request<StravaSegmentEffort[]>('GET', `/segments/${segmentId}/all_efforts`, {
+      params: {
+        start_date_local: options.start_date_local,
+        end_date_local: options.end_date_local,
+        page: options.page || 1,
+        per_page: options.per_page || 30,
+      },
+    });
+  }
+
+  /**
+   * Get segment effort streams
+   */
+  public async getSegmentEffortStreams(
+    effortId: number,
+    options: GetActivityStreamsOptions = {}
+  ): Promise<StravaStreams> {
+    const keys = options.keys || ['distance', 'altitude'];
+    return this.request<StravaStreams>('GET', `/segment_efforts/${effortId}/streams`, {
+      params: {
+        keys: keys.join(','),
+        key_by_type: options.key_by_type ?? true,
+      },
+    });
+  }
+
+  // ============================================================================
+  // Upload Endpoints
+  // ============================================================================
+
+  /**
+   * Upload an activity file
+   */
+  public async uploadActivity(options: UploadActivityOptions): Promise<StravaUpload> {
+    // For file uploads, we need to use FormData
+    const formData = new FormData();
+    formData.append('file', options.file as Blob);
+    formData.append('data_type', options.data_type);
+
+    if (options.name) formData.append('name', options.name);
+    if (options.description) formData.append('description', options.description);
+    if (options.trainer !== undefined) formData.append('trainer', String(options.trainer));
+    if (options.commute !== undefined) formData.append('commute', String(options.commute));
+    if (options.external_id) formData.append('external_id', options.external_id);
+
+    // Auto-refresh token if needed
+    if (this.config.autoRefresh && this.tokens) {
+      await this.refreshTokenIfNeeded();
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+    try {
+      const response = await fetch(`${STRAVA_API_BASE_URL}/uploads`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      this.updateRateLimitInfo(response.headers);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw parseStravaError({
+          status: response.status,
+          data: errorData,
+          headers: response.headers,
+        });
+      }
+
+      return await response.json() as StravaUpload;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new StravaNetworkError('Request timed out');
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * Get upload status by ID
+   */
+  public async getUpload(uploadId: number): Promise<StravaUpload> {
+    return this.request<StravaUpload>('GET', `/uploads/${uploadId}`);
   }
 
   // ============================================================================

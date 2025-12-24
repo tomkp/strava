@@ -16,6 +16,7 @@ export type {
   // Athlete
   StravaAthlete,
   StravaAthleteStats,
+  StravaAthleteZones,
   StravaActivityTotals,
   // Activities
   StravaActivity,
@@ -24,9 +25,24 @@ export type {
   StravaSplit,
   StravaBestEffort,
   StravaAchievement,
+  // Comments & Kudos
+  StravaComment,
+  StravaKudoser,
+  // Clubs
+  StravaClub,
+  StravaClubActivity,
+  StravaClubMember,
+  StravaClubAdmin,
+  // Gear
+  StravaGear,
+  // Routes
+  StravaRoute,
+  StravaWaypoint,
   // Segments
   StravaSegmentEffort,
   StravaSegment,
+  StravaExplorerSegment,
+  StravaExplorerResponse,
   // Zones
   StravaZone,
   StravaHeartRateZones,
@@ -36,9 +52,19 @@ export type {
   StravaStreamType,
   StravaStream,
   StravaStreams,
+  // Uploads
+  StravaUpload,
   // Options
   GetActivitiesOptions,
   GetActivityStreamsOptions,
+  CreateActivityOptions,
+  UpdateActivityOptions,
+  UpdateAthleteOptions,
+  PaginationOptions,
+  ExploreSegmentsOptions,
+  GetSegmentEffortsOptions,
+  UploadActivityOptions,
+  // Config
   StravaRateLimitInfo,
   StravaClientConfig,
 } from './types';

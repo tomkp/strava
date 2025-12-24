@@ -217,6 +217,149 @@ export interface StravaAchievement {
 }
 
 // ============================================================================
+// Comment Types
+// ============================================================================
+
+export interface StravaComment {
+  id: number;
+  activity_id: number;
+  text: string;
+  athlete: StravaAthlete;
+  created_at: string;
+}
+
+// ============================================================================
+// Kudos Types
+// ============================================================================
+
+export interface StravaKudoser {
+  firstname: string;
+  lastname: string;
+}
+
+// ============================================================================
+// Club Types
+// ============================================================================
+
+export interface StravaClub {
+  id: number;
+  resource_state: number;
+  name: string;
+  profile_medium?: string;
+  profile?: string;
+  cover_photo?: string;
+  cover_photo_small?: string;
+  activity_types?: string[];
+  activity_types_icon?: string;
+  dimensions?: string[];
+  sport_type?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  private?: boolean;
+  member_count?: number;
+  featured?: boolean;
+  verified?: boolean;
+  url?: string;
+  membership?: 'member' | 'pending' | null;
+  admin?: boolean;
+  owner?: boolean;
+  description?: string;
+  club_type?: string;
+  post_count?: number;
+  owner_id?: number;
+  following_count?: number;
+}
+
+export interface StravaClubActivity {
+  resource_state: number;
+  athlete: {
+    firstname: string;
+    lastname: string;
+  };
+  name: string;
+  distance: number;
+  moving_time: number;
+  elapsed_time: number;
+  total_elevation_gain: number;
+  type: string;
+  sport_type?: string;
+  workout_type?: number | null;
+}
+
+export interface StravaClubMember {
+  firstname: string;
+  lastname: string;
+  membership: string;
+  admin: boolean;
+  owner: boolean;
+}
+
+export interface StravaClubAdmin {
+  firstname: string;
+  lastname: string;
+  membership: string;
+  admin: boolean;
+  owner: boolean;
+}
+
+// ============================================================================
+// Gear Types
+// ============================================================================
+
+export interface StravaGear {
+  id: string;
+  primary: boolean;
+  name: string;
+  distance: number;
+  resource_state: number;
+  brand_name?: string;
+  model_name?: string;
+  frame_type?: number;
+  description?: string;
+  nickname?: string;
+  retired?: boolean;
+  weight?: number;
+}
+
+// ============================================================================
+// Route Types
+// ============================================================================
+
+export interface StravaRoute {
+  id: number;
+  resource_state: number;
+  name: string;
+  description?: string;
+  athlete: {
+    id: number;
+    resource_state: number;
+  };
+  distance: number;
+  elevation_gain: number;
+  map: StravaMap;
+  type: number;
+  sub_type: number;
+  private: boolean;
+  starred: boolean;
+  timestamp: number;
+  segments?: StravaSegment[];
+  created_at: string;
+  updated_at: string;
+  estimated_moving_time: number;
+  waypoints?: StravaWaypoint[];
+}
+
+export interface StravaWaypoint {
+  latlng: [number, number];
+  target_latlng?: [number, number];
+  categories?: string[];
+  title?: string;
+  description?: string;
+  distance_into_route?: number;
+}
+
+// ============================================================================
 // Segment Types
 // ============================================================================
 
@@ -260,6 +403,84 @@ export interface StravaSegment {
   private: boolean;
   hazardous: boolean;
   starred: boolean;
+  // Detailed segment fields
+  resource_state?: number;
+  created_at?: string;
+  updated_at?: string;
+  total_elevation_gain?: number;
+  map?: StravaMap;
+  effort_count?: number;
+  athlete_count?: number;
+  star_count?: number;
+  athlete_segment_stats?: {
+    pr_elapsed_time?: number;
+    pr_date?: string;
+    pr_activity_id?: number;
+    effort_count?: number;
+  };
+  xoms?: {
+    kom?: string;
+    qom?: string;
+    overall?: string;
+  };
+  local_legend?: {
+    athlete_id?: number;
+    title?: string;
+    profile?: string;
+    effort_description?: string;
+    effort_count?: string;
+    effort_counts?: {
+      overall?: string;
+      female?: string;
+    };
+    destination?: string;
+  };
+}
+
+export interface StravaExplorerSegment {
+  id: number;
+  name: string;
+  climb_category: number;
+  climb_category_desc: string;
+  avg_grade: number;
+  start_latlng: [number, number];
+  end_latlng: [number, number];
+  elev_difference: number;
+  distance: number;
+  points: string;
+  starred: boolean;
+  resource_state: number;
+}
+
+export interface StravaExplorerResponse {
+  segments: StravaExplorerSegment[];
+}
+
+// ============================================================================
+// Upload Types
+// ============================================================================
+
+export interface StravaUpload {
+  id: number;
+  id_str: string;
+  external_id: string;
+  error: string | null;
+  status: string;
+  activity_id: number | null;
+}
+
+// ============================================================================
+// Athlete Zones Types
+// ============================================================================
+
+export interface StravaAthleteZones {
+  heart_rate?: {
+    custom_zones: boolean;
+    zones: StravaZone[];
+  };
+  power?: {
+    zones: StravaZone[];
+  };
 }
 
 // ============================================================================
@@ -334,6 +555,95 @@ export interface GetActivityStreamsOptions {
   keys?: StravaStreamType[];
   /** Whether to return streams keyed by type (default: true) */
   key_by_type?: boolean;
+}
+
+export interface CreateActivityOptions {
+  /** The name of the activity */
+  name: string;
+  /** Type of activity (e.g., 'Run', 'Ride', 'Swim') */
+  sport_type: string;
+  /** ISO 8601 formatted date time */
+  start_date_local: string;
+  /** In seconds */
+  elapsed_time: number;
+  /** Type of activity (deprecated, use sport_type) */
+  type?: string;
+  /** Description of the activity */
+  description?: string;
+  /** In meters */
+  distance?: number;
+  /** Set to true to mark as a trainer activity */
+  trainer?: boolean;
+  /** Set to true to mark as commute */
+  commute?: boolean;
+}
+
+export interface UpdateActivityOptions {
+  /** The name of the activity */
+  name?: string;
+  /** Type of activity (e.g., 'Run', 'Ride', 'Swim') */
+  sport_type?: string;
+  /** Description of the activity */
+  description?: string;
+  /** Identifier for the gear associated with the activity */
+  gear_id?: string;
+  /** Set to true to mark as a trainer activity */
+  trainer?: boolean;
+  /** Set to true to mark as commute */
+  commute?: boolean;
+  /** Set to true to mute activity */
+  hide_from_home?: boolean;
+}
+
+export interface UpdateAthleteOptions {
+  /** The weight of the athlete in kilograms */
+  weight?: number;
+}
+
+export interface PaginationOptions {
+  /** Page number (default: 1) */
+  page?: number;
+  /** Number of items per page (default: 30, max: 200) */
+  per_page?: number;
+}
+
+export interface ExploreSegmentsOptions {
+  /** The bounds of the area to search: [south, west, north, east] */
+  bounds: [number, number, number, number];
+  /** Activity type: 'running' or 'riding' */
+  activity_type?: 'running' | 'riding';
+  /** Minimum climb category */
+  min_cat?: number;
+  /** Maximum climb category */
+  max_cat?: number;
+}
+
+export interface GetSegmentEffortsOptions {
+  /** ISO 8601 formatted date time */
+  start_date_local?: string;
+  /** ISO 8601 formatted date time */
+  end_date_local?: string;
+  /** Page number */
+  page?: number;
+  /** Number of items per page (max: 200) */
+  per_page?: number;
+}
+
+export interface UploadActivityOptions {
+  /** The file to upload */
+  file: Blob | Buffer;
+  /** The name of the file */
+  name?: string;
+  /** The description of the activity */
+  description?: string;
+  /** Set to true to mark as a trainer activity */
+  trainer?: boolean;
+  /** Set to true to mark as commute */
+  commute?: boolean;
+  /** The format of the file: 'fit', 'fit.gz', 'tcx', 'tcx.gz', 'gpx', 'gpx.gz' */
+  data_type: 'fit' | 'fit.gz' | 'tcx' | 'tcx.gz' | 'gpx' | 'gpx.gz';
+  /** External identifier */
+  external_id?: string;
 }
 
 // ============================================================================
